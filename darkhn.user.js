@@ -2,4 +2,7 @@
 // @name Dark HN
 // @match https://news.ycombinator.com/*
 // ==/UserScript==
-window.document.querySelectorAll('*').forEach(e=>e.setAttribute('style','background-color:#222;background-image:none;color:#'+(/^A|BU/.test(e.tagName)?'36c;text-decoration:underline;':'eee;')+e.getAttribute('style')))
+window.document.body.style.background = '#111'
+window.document.body.style.filter = 'saturate(0) invert(1) hue-rotate(180deg)'
+window.document.getElementsByTagName('td')[0].style.background = '#ccc'
+// window.document.getElementsByTagName('img')[0].style.filter = 'saturate(0)'
