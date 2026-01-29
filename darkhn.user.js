@@ -4,5 +4,3 @@
 // ==/UserScript==
 window.document.body.style.background = '#222'
 window.document.body.style.color = '#eee'
-let x = window.document.getElementsByTagName('a')
-[...x].forEach(e=>e.setAttribute('style','color:#eee'))
