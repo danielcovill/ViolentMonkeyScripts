@@ -2,7 +2,7 @@
 // @name Dark HN
 // @namespace   Violentmonkey Scripts
 // @match https://news.ycombinator.com/*
-// @version     1.0
+// @version     1.1
 // ==/UserScript==
 
 (function() {
@@ -10,18 +10,16 @@
 
     const style = document.createElement('style');
     style.innerHTML = `
-      table, .pagetop, .c00 {
+      body, .hnmain, .hnmain td, table, .pagetop, .c00 {
         color: #CCC;
         background: #111;
       }
       a {
         color: #CCC !important;
       }
-      body, .hnmain, .hnmain td {
-        background: #111;
-      }
-      textarea {
-        background-color: #000;
+      textarea, input {
+        background: #000;
+        color: #CCC
       }
     `;
     document.head.appendChild(style);
