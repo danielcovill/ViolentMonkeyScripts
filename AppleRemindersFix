@@ -1,0 +1,104 @@
+// ==UserScript==
+// @name        Apple Reminders Web Fixes
+// @namespace   Violentmonkey Scripts
+// @run-at      document-idle
+// @match       https://www.icloud.com/applications/reminders2/*
+// @version     1.0
+// ==/UserScript==
+
+// --- Helper: Debounce to prevent rapid-fire execution ---
+function debounce(func, timeout = 300) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { func.apply(this, args); }, timeout);
+  };
+}
+
+const getDateFromAppleReminder = (appleElement) => {
+	const dateCell = appleElement.getElementsByClassName("date-cell")[0];
+	if (!dateCell) return new Date(8640000000000000);
+	const dateText = dateCell.innerText.split("\n")[0];
+
+	const dueDatearr = dateText.split(',');
+	const dueday = dueDatearr[0].trim();
+	let duehour = 0;
+	let duemin = 0;
+
+	//if dueDate array is longer than a single cell, we likely have a time component
+	if (dueDatearr.length > 1 && dueDatearr[1].match(/\b([1-9]|1[0-2]):[0-5][0-9](?:AM|PM)\b/)) {
+		let timeParts = dueDatearr[1].trim().split(/:| /);
+		duehour = parseInt(timeParts[0]);
+		duemin = parseInt(timeParts[1]);
+		if (timeParts[2] === "PM" && duehour < 12) duehour += 12;
+		if (timeParts[2] === "AM" && duehour === 12) duehour = 0;
+	}
+
+	let dueDate = new Date();
+	switch (dueday) {
+		case "Yesterday":
+			dueDate.setDate(dueDate.getDate() - 1);
+			break;
+		case "Today":
+			break;
+		case "Tomorrow":
+			dueDate.setDate(dueDate.getDate() + 1);
+			break;
+		default://an actual date in short format
+			dueDate = new Date(dueday);
+			break;
+	}
+	dueDate.setHours(duehour, duemin);
+	return dueDate;
+};
+
+
+// --- Main Sorting Logic ---
+const sortList = debounce(() => {
+    const items = Array.from(document.getElementsByClassName("reminder-item"));
+    if (items.length === 0) return;
+
+    const listContainer = items[0].parentElement;
+
+    console.log(`Sorting ${items.length} items...`);
+    observer.disconnect();
+
+    const sortedElements = items.sort((a, b) => {
+        return getDateFromAppleReminder(a) - getDateFromAppleReminder(b);
+    });
+
+    sortedElements.forEach(el => listContainer.appendChild(el));
+
+    observer.observe(document.body, config);
+});
+
+// --- Observer and Initialization ---
+const config = { childList: true, subtree: true };
+const observer = new MutationObserver((mutations) => {
+    // 1. Sidebar Load the list I want
+    const remindersBtn = document.evaluate(
+        "//*[(self::button or @role='button') and descendant-or-self::*[text()='Reminders']]",
+        document,
+        null,
+        XPathResult.FIRST_ORDERED_NODE_TYPE,
+        null
+    ).singleNodeValue;
+
+    if (remindersBtn && !remindersBtn.dataset.alreadyClicked) {
+        remindersBtn.dataset.alreadyClicked = "true";
+        remindersBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    }
+
+    // 2. List Detection
+    const items = document.getElementsByClassName("reminder-item");
+
+    // Only trigger if we actually have items and they aren't currently being moved
+    if (items.length > 0) {
+        // We use the debounced sortList here.
+        // The 300ms delay in debounce is key: it waits for Apple to
+        // finish "streaming" the reminders into the DOM.
+        sortList();
+    }
+});
+
+observer.observe(document.body, config);
