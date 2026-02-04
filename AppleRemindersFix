@@ -3,7 +3,7 @@
 // @namespace   Violentmonkey Scripts
 // @run-at      document-idle
 // @match       https://www.icloud.com/applications/reminders2/*
-// @version     1.0
+// @version     1.1
 // ==/UserScript==
 
 // --- Helper: Debounce to prevent rapid-fire execution ---
@@ -38,14 +38,19 @@ const getDateFromAppleReminder = (appleElement) => {
 	switch (dueday) {
 		case "Yesterday":
 			dueDate.setDate(dueDate.getDate() - 1);
+      appleElement.style.backgroundColor = "#333";
 			break;
 		case "Today":
+      appleElement.style.backgroundColor = "#333";
 			break;
 		case "Tomorrow":
 			dueDate.setDate(dueDate.getDate() + 1);
 			break;
 		default://an actual date in short format
-			dueDate = new Date(dueday);
+			if(new Date(dueday) < new Date()) {
+        appleElement.style.backgroundColor = "#333";
+      }
+      dueDate = new Date(dueday);
 			break;
 	}
 	dueDate.setHours(duehour, duemin);
