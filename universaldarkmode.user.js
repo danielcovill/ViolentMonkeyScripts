@@ -58,8 +58,8 @@
 
     // Listen for backtick key (`)
     document.addEventListener('keydown', function(e) {
-        // Check for backtick key (keyCode 192 or key '`')
-        if (e.key === '`' || e.keyCode === 192) {
+        // Check for backtick key
+        if (e.key === '`') {
             // Prevent default behavior
             e.preventDefault();
             toggleDarkMode();
